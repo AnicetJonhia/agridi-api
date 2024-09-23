@@ -35,7 +35,8 @@ venv.bak/
 
 # Migrations
 */migrations/*
-!*/migrations/__init__.py
+*/migrations/*.py
+*/migrations/__pycache__/
 
 # Jupyter Notebook
 .ipynb_checkpoints
