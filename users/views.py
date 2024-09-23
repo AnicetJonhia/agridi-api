@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, generics
 from rest_framework.authentication import TokenAuthentication, BasicAuthentication
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -9,7 +9,8 @@ from django.contrib.auth import authenticate
 from core.permissions import IsAdminUser, IsOwnerOrReadOnly
 from .models import User
 
-from .serializers import UserSerializer
+from .serializers import UserSerializer, ProfileSerializer
+
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -72,3 +73,14 @@ class UserViewSet(viewsets.ModelViewSet):
     def me(self, request):
         serializer = self.serializer_class(request.user)
         return Response(serializer.data)
+
+
+
+class ProfileUpdateView(generics.UpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = ProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
