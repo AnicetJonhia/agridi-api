@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import NeedViewSet
 
 router = DefaultRouter()
-router.register(r'needs', NeedViewSet)
+router.register(r'', NeedViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

@@ -5,7 +5,7 @@ from .views import MessageViewSet, GroupViewSet
 router = DefaultRouter()
 
 router.register(r'groups', GroupViewSet)
-router.register(r'custom_messages', MessageViewSet)
+router.register(r'', MessageViewSet)
 
 
 urlpatterns = [
