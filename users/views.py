@@ -1,15 +1,29 @@
-from rest_framework import viewsets, status, generics
+from django.core.mail import send_mail
+from rest_framework import viewsets
 from rest_framework.authentication import TokenAuthentication, BasicAuthentication
-from rest_framework.response import Response
+
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
 
 from core.permissions import IsAdminUser, IsOwnerOrReadOnly
-from .models import User
+# from .models import User
 
 from .serializers import UserSerializer, ProfileSerializer
+from rest_framework import generics, status
+from rest_framework.response import Response
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+from django.urls import reverse
+from django.conf import settings
+from .serializers import PasswordResetRequestSerializer, PasswordResetConfirmSerializer
+
+
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -84,3 +98,43 @@ class ProfileUpdateView(generics.UpdateAPIView):
     def get_object(self):
         return self.request.user
 
+
+
+
+
+class PasswordResetRequestView(generics.GenericAPIView):
+    serializer_class = PasswordResetRequestSerializer
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email']
+        user = User.objects.get(email=email)
+
+        token_generator = PasswordResetTokenGenerator()
+        token = token_generator.make_token(user)
+        uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+
+        reset_url = request.build_absolute_uri(
+            reverse('password-reset-confirm')
+        ) + f"?uidb64={uidb64}&token={token}"
+
+        subject = 'Réinitialisation de votre mot de passe'
+        message = f'Cliquez sur le lien suivant pour réinitialiser votre mot de passe : {reset_url}'
+        send_mail(subject, message, settings.EMAIL_HOST_USER, [email])
+
+        return Response({'message': 'Lien de réinitialisation envoyé par e-mail.'}, status=status.HTTP_200_OK)
+
+class PasswordResetConfirmView(generics.GenericAPIView):
+    serializer_class = PasswordResetConfirmSerializer
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        new_password = serializer.validated_data['new_password']
+        user.set_password(new_password)
+        user.save()
+        return Response({'message': 'Mot de passe réinitialisé avec succès.'}, status=status.HTTP_200_OK)

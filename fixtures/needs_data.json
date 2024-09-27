@@ -1,0 +1,1 @@
+[{"model": "needs.need", "pk": 1, "fields": {"product_name": "Tomate", "variety": "Cerise", "quantity": 50, "budget": "150.00", "delivery_deadline": "2024-10-15", "user": 4}}, {"model": "needs.need", "pk": 2, "fields": {"product_name": "Voatabia", "variety": "Cerise", "quantity": 50, "budget": "150.00", "delivery_deadline": "2024-10-15", "user": 4}}]

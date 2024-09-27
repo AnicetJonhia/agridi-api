@@ -1,0 +1,1 @@
+[{"model": "custom_messages.group", "pk": 1, "fields": {"name": "Projet A", "owner": 4, "photo": "", "members": [3, 5, 6]}}, {"model": "custom_messages.group", "pk": 2, "fields": {"name": "Projet X", "owner": 5, "photo": "", "members": [3, 4, 5, 6]}}]

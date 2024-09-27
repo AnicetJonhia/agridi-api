@@ -1,0 +1,1 @@
+[{"model": "seasons.season", "pk": 1, "fields": {"name": "Saison de printemps", "start_date": "2024-03-01", "end_date": "2024-06-01", "description": null}}, {"model": "seasons.season", "pk": 2, "fields": {"name": "Saison d'hiver", "start_date": "2024-03-01", "end_date": "2024-06-01", "description": null}}]
