@@ -23,10 +23,10 @@ class IsOwnerOrReadOnly(BasePermission):
         if request.method in ['GET', 'HEAD', 'OPTIONS']:
             return True
 
-        return   obj.user == request.user or request.user.is_admin
+        return  obj==request.user or  obj.user == request.user or request.user.is_admin
 
 
-from rest_framework.permissions import BasePermission
+
 
 
 class IsMessageOwner(BasePermission):
