@@ -23,7 +23,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
 
-        serializer.save(owner=self.request.user)
+        serializer.save(user=self.request.user)
 
     def get_serializer_context(self):
         return {'request': self.request}

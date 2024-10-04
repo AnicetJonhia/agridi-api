@@ -1,4 +1,5 @@
 from rest_framework.permissions import BasePermission
+from users.models import User
 
 class IsAdminUser(BasePermission):
     def has_permission(self, request, view):
@@ -23,7 +24,11 @@ class IsOwnerOrReadOnly(BasePermission):
         if request.method in ['GET', 'HEAD', 'OPTIONS']:
             return True
 
-        return  obj==request.user or  obj.user == request.user or request.user.is_admin
+        if isinstance(obj, User):
+            return obj == request.user or request.user.is_admin
+
+
+        return obj.user == request.user or request.user.is_admin
 
 
 

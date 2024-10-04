@@ -9,6 +9,7 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = '__all__'
+        read_only_fields = ['user']
 
     def get_orders_details(self, obj):
         request = self.context.get('request')
