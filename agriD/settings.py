@@ -165,13 +165,11 @@ AUTH_USER_MODEL = 'users.User'
 
 
 
-# settings.py
+# forgotten password
+# Configuration SparkPost
+EMAIL_BACKEND = 'sparkpost.django.SparkPostEmailBackend'
+SPARKPOST_API_KEY = '6912aa60ad79a28972ff13c767f8abbdab21a310'  
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'votre_mail'
-EMAIL_HOST_PASSWORD = 'votre_mot_de_passe'
+
 
 
