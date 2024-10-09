@@ -169,10 +169,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 
 
-# forgotten password
-# Configuration SparkPost
-EMAIL_BACKEND = 'sparkpost.django.SparkPostEmailBackend'
-SPARKPOST_API_KEY = '6912aa60ad79a28972ff13c767f8abbdab21a310'  
+
 
 
 
