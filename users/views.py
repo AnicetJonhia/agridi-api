@@ -62,13 +62,25 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'], url_path='login', permission_classes=[AllowAny])
     def login(self, request):
-        username = request.data.get('username')
+        username_or_email = request.data.get('username_or_email')
         password = request.data.get('password')
 
-        if not username or not password:
-            return Response({'error': 'Username and password required'}, status=status.HTTP_400_BAD_REQUEST)
+        if not username_or_email or not password:
+            return Response({'error': 'Username or email and password required'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Check if it's an email or username
+        if '@' in username_or_email:
+            try:
+                user = User.objects.get(email=username_or_email)
+                username = user.username
+            except User.DoesNotExist:
+                return Response({'error': 'Invalid email or password'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            username = username_or_email
+
+        # Authenticate with the username and password
         user = authenticate(username=username, password=password)
+
         if user is not None:
             token, _ = Token.objects.get_or_create(user=user)
             return Response({
@@ -76,7 +88,9 @@ class UserViewSet(viewsets.ModelViewSet):
                 'user_id': user.id,
                 'role': user.role
             }, status=status.HTTP_200_OK)
+
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
+
 
     @action(detail=False, methods=['post'], url_path='logout', permission_classes=[IsAuthenticated])
     def logout(self, request):
