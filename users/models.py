@@ -22,6 +22,8 @@ class User(AbstractUser):
     linkedin = models.URLField(blank=True, null=True)
     is_active = models.BooleanField(default=True, blank=True, null=True)
 
+
+
     groups = models.ManyToManyField(Group, related_name='users')
     user_permissions = models.ManyToManyField(Permission, related_name='users')
 
