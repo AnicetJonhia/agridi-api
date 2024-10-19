@@ -13,4 +13,5 @@ urlpatterns = [
     path('api/news/', include('news.urls')),
 
     path('api/notices/',include('notices.urls')),
+    path('api/payments/',include('payments.urls')),
 ]

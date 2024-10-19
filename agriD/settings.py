@@ -55,7 +55,8 @@ INSTALLED_APPS = [
     'stats',
     'seasons',
     'news',
-    'notices'
+    'notices',
+    'payments',
 
 
 
@@ -171,6 +172,10 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 
 
-
+# Configuration pour Mobile Money
+MOBILE_MONEY_API_URL = 'https://api.mobilemoney.example.com'
+MOBILE_MONEY_API_KEY = 'your_api_key_here'
+MOBILE_MONEY_SECRET = 'your_api_secret_here'
+MOBILE_MONEY_CALLBACK_URL = 'https://yourdomain.com/api/payment/callback/'
 
 
