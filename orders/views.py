@@ -6,14 +6,6 @@ from .models import Order
 from .serializers import OrderSerializer
 
 
-from django.shortcuts import  redirect
-from django.views import View
-
-from products.models import Product
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
-
-
 
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
@@ -27,29 +19,9 @@ class OrderViewSet(viewsets.ModelViewSet):
         if quantity_ordered > product.quantity:
             raise serializers.ValidationError("La quantité commandée dépasse le stock disponible.")
 
-
         order = serializer.save(user=self.request.user)
 
         product.decrease_quantity(quantity_ordered)
-
-
-
-
-
-@method_decorator(login_required, name='dispatch')
-class CreateOrderView(View):
-    def post(self, request, product_id):
-        product = Product.objects.get(id=product_id)
-        quantity = int(request.POST.get('quantity'))
-        negotiated_price = product.price  # Ou tout autre logique pour le prix
-
-        # Créer une nouvelle commande
-        order = Order.objects.create(
-            product=product,
-            user=request.user,
-            quantity=quantity,
-            negotiated_price=negotiated_price
-        )
 
         # Appeler la fonction pour traiter le paiement ici
         transaction_id, transaction_status = self.process_payment(order)
@@ -59,12 +31,8 @@ class CreateOrderView(View):
         order.transaction_status = transaction_status
         order.save()
 
-        return redirect('order_success', order_id=order.id)
-
     def process_payment(self, order):
-        # Cette fonction doit intégrer votre logique de traitement de paiement avec Mobile Money
-        # Ceci est un exemple fictif
-        # Vous pouvez utiliser l'API de Mobile Money ici pour effectuer la transaction
+        # Logique pour le traitement de paiement avec Mobile Money
         transaction_id = "TRANSACTION12345"  # Exemple
         transaction_status = "completed"  # ou "failed", en fonction du résultat du paiement
 
