@@ -1,15 +1,11 @@
 from django.core.mail import send_mail
 from rest_framework import viewsets
 from rest_framework.authentication import TokenAuthentication, BasicAuthentication
-
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
-
 from core.permissions import IsAdminUser, IsOwnerOrReadOnly
-# from .models import User
-
 from .serializers import UserSerializer, ProfileSerializer
 from rest_framework import generics, status
 from rest_framework.response import Response
@@ -19,20 +15,14 @@ from django.utils.http import urlsafe_base64_encode
 from django.urls import reverse
 from django.conf import settings
 from .serializers import PasswordResetRequestSerializer, PasswordResetConfirmSerializer
-
-
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
-
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     authentication_classes = [TokenAuthentication, BasicAuthentication]
-
-
-
 
     def get_permissions(self):
         if self.action in ['register', 'login']:
@@ -46,7 +36,6 @@ class UserViewSet(viewsets.ModelViewSet):
         else:
             self.permission_classes = [IsAuthenticated]
         return super().get_permissions()
-
 
     @action(detail=False, methods=['post'], url_path='register', permission_classes=[AllowAny])
     def register(self, request):
@@ -68,7 +57,6 @@ class UserViewSet(viewsets.ModelViewSet):
         if not username_or_email or not password:
             return Response({'error': 'Username or email and password required'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Check if it's an email or username
         if '@' in username_or_email:
             try:
                 user = User.objects.get(email=username_or_email)
@@ -78,7 +66,6 @@ class UserViewSet(viewsets.ModelViewSet):
         else:
             username = username_or_email
 
-        # Authenticate with the username and password
         user = authenticate(username=username, password=password)
 
         if user is not None:
@@ -91,7 +78,6 @@ class UserViewSet(viewsets.ModelViewSet):
 
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
 
-
     @action(detail=False, methods=['post'], url_path='logout', permission_classes=[IsAuthenticated])
     def logout(self, request):
         request.user.auth_token.delete()
@@ -99,22 +85,17 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='me', permission_classes=[IsAuthenticated])
     def me(self, request):
-        serializer = self.serializer_class(request.user)
+        serializer = ProfileSerializer(request.user)
         return Response(serializer.data)
 
-
-
-class ProfileUpdateView(generics.UpdateAPIView):
-    queryset = User.objects.all()
-    serializer_class = ProfileSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_object(self):
-        return self.request.user
-
-
-
-
+    @action(detail=False, methods=['patch'], url_path='profile/edit', permission_classes=[IsAuthenticated])
+    def update_profile(self, request):
+        user = request.user
+        serializer = ProfileSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class PasswordResetRequestView(generics.GenericAPIView):
     serializer_class = PasswordResetRequestSerializer
