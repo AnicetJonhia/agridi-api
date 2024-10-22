@@ -49,7 +49,11 @@ class UserSerializer(serializers.ModelSerializer):
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = '__all__'
+        fields = [
+            'id', 'username', 'email', 'role', 'first_name', 'last_name',
+            'phone_number', 'address', 'bio', 'website', 'profile_picture',
+            'date_of_birth', 'alternate_email', 'linkedin', 'is_active'
+        ]
 
     def update(self, instance, validated_data):
         for attr, value in validated_data.items():
