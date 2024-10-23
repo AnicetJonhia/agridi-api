@@ -16,6 +16,7 @@ from django.urls import reverse
 from django.conf import settings
 from .serializers import PasswordResetRequestSerializer, PasswordResetConfirmSerializer
 from django.contrib.auth import get_user_model
+from rest_framework.parsers import MultiPartParser, FormParser
 
 User = get_user_model()
 
@@ -23,6 +24,7 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     authentication_classes = [TokenAuthentication, BasicAuthentication]
+    parser_classes = (MultiPartParser, FormParser)
 
     def get_permissions(self):
         if self.action in ['register', 'login']:
@@ -85,13 +87,14 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='me', permission_classes=[IsAuthenticated])
     def me(self, request):
+
         serializer = ProfileSerializer(request.user, context={'request': request})
         return Response(serializer.data)
 
     @action(detail=False, methods=['patch'], url_path='profile/edit', permission_classes=[IsAuthenticated])
     def update_profile(self, request):
         user = request.user
-        serializer = ProfileSerializer(user, data=request.data, partial=True)
+        serializer = ProfileSerializer(user, data=request.data, partial=True, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
