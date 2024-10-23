@@ -16,7 +16,7 @@ from django.urls import reverse
 from django.conf import settings
 from .serializers import PasswordResetRequestSerializer, PasswordResetConfirmSerializer
 from django.contrib.auth import get_user_model
-from rest_framework.parsers import MultiPartParser, FormParser
+
 
 User = get_user_model()
 
@@ -24,7 +24,7 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     authentication_classes = [TokenAuthentication, BasicAuthentication]
-    parser_classes = (MultiPartParser, FormParser)
+
 
     def get_permissions(self):
         if self.action in ['register', 'login']:
