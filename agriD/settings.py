@@ -179,3 +179,5 @@ MOBILE_MONEY_SECRET = 'your_api_secret_here'
 MOBILE_MONEY_CALLBACK_URL = 'https://yourdomain.com/api/payment/callback/'
 
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

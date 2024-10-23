@@ -7,7 +7,7 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import  force_str
 from django.utils.http import  urlsafe_base64_decode
 from rest_framework import serializers
-
+from django.conf import settings
 
 
 from django.contrib.auth import get_user_model
@@ -46,7 +46,10 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 
+
 class ProfileSerializer(serializers.ModelSerializer):
+    profile_picture = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = [
@@ -61,7 +64,11 @@ class ProfileSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+    def get_profile_picture(self, obj):
 
+        if obj.profile_picture:
+            return f"{self.context['request'].build_absolute_uri(obj.profile_picture.url)}"
+        return None
 
 
 

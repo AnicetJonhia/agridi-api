@@ -85,7 +85,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='me', permission_classes=[IsAuthenticated])
     def me(self, request):
-        serializer = ProfileSerializer(request.user)
+        serializer = ProfileSerializer(request.user, context={'request': request})
         return Response(serializer.data)
 
     @action(detail=False, methods=['patch'], url_path='profile/edit', permission_classes=[IsAuthenticated])
