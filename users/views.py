@@ -97,6 +97,12 @@ class UserViewSet(viewsets.ModelViewSet):
     def perform_update(self, request):
 
         user = request.user
+        data = request.data.copy()
+
+
+        if 'profile_picture' not in request.data or request.data['profile_picture'] == 'null':
+            data.pop('profile_picture', None)
+
         serializer = ProfileSerializer(user, data=request.data, partial=True, context={'request': request})
         if serializer.is_valid():
             serializer.save()

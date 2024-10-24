@@ -6,6 +6,7 @@
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import  force_str
 from django.utils.http import  urlsafe_base64_decode
+from pkg_resources import require
 from rest_framework import serializers
 from django.conf import settings
 
@@ -48,7 +49,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    profile_picture = serializers.ImageField(required=False)
+
 
     class Meta:
         model = User
@@ -57,6 +58,9 @@ class ProfileSerializer(serializers.ModelSerializer):
             'phone_number', 'address', 'bio', 'website', 'profile_picture',
             'date_of_birth', 'alternate_email', 'linkedin', 'is_active'
         ]
+        extra_kwargs = {
+            'profile_picture': {'required': False},
+        }
 
     def update(self, instance, validated_data):
         for attr, value in validated_data.items():
