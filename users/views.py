@@ -25,6 +25,8 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     authentication_classes = [TokenAuthentication, BasicAuthentication]
 
+    def get_queryset(self):
+        return User.objects.filter(user=self.request.user)
 
     def get_permissions(self):
         if self.action in ['register', 'login']:
@@ -91,9 +93,9 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = ProfileSerializer(request.user, context={'request': request})
         return Response(serializer.data)
 
-    @action(detail=False, methods=['patch'], url_path='profile/edit', permission_classes=[IsAuthenticated])
-    def update_profile(self, request):
-        parser_classes = [MultiPartParser]
+    @action(detail=False, methods=['patch'], url_path='profile/edit', permission_classes=[IsAuthenticated], parser_classes=[MultiPartParser])
+    def perform_update(self, request):
+
         user = request.user
         serializer = ProfileSerializer(user, data=request.data, partial=True, context={'request': request})
         if serializer.is_valid():
