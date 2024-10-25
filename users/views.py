@@ -26,7 +26,11 @@ class UserViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication, BasicAuthentication]
 
     def get_queryset(self):
-        return User.objects.filter(user=self.request.user)
+
+        if self.action == 'me':
+            return User.objects.filter(id=self.request.user.id)
+
+        return User.objects.all()
 
     def get_permissions(self):
         if self.action in ['register', 'login']:
