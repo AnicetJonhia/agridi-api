@@ -20,7 +20,7 @@ class GroupSerializer(serializers.ModelSerializer):
         read_only_fields = ['owner']
 
 class MessageSerializer(serializers.ModelSerializer):
-    group = serializers.PrimaryKeyRelatedField(queryset=Group.objects.all(), required=False)
+    group = GroupSerializer(read_only=True)
     receiver = UserSerializerForMessage(read_only=True)
     sender = UserSerializerForMessage(read_only=True)
 
