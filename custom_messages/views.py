@@ -1,14 +1,16 @@
 from django.db import models
+
+
+from core.permissions import IsMessageOwner, IsGroupOwnerOrMember
+
+from django.db.models import Max
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-
-
-from core.permissions import IsMessageOwner, IsGroupOwnerOrMember
 from .models import Message, Group
 from .serializers import MessageSerializer, GroupSerializer
-
+from users.models import User
 
 class GroupViewSet(viewsets.ModelViewSet):
     queryset = Group.objects.all()
@@ -52,6 +54,8 @@ class GroupViewSet(viewsets.ModelViewSet):
         else:
             return Response({"detail": "Vous n'êtes pas membre de ce groupe."}, status=status.HTTP_400_BAD_REQUEST)
 
+
+
 class MessageViewSet(viewsets.ModelViewSet):
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
@@ -65,9 +69,42 @@ class MessageViewSet(viewsets.ModelViewSet):
             serializer.save(sender=self.request.user)
 
     def get_queryset(self):
-
         return Message.objects.filter(
             models.Q(receiver=self.request.user) | models.Q(sender=self.request.user) |
             models.Q(group__members=self.request.user)
         )
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], name='Conversations')
+    def conversations(self, request):
+        """Retourne la liste des dernières conversations avec le dernier message de chaque utilisateur ou groupe."""
+        last_messages = (
+            Message.objects
+            .filter(models.Q(receiver=request.user) | models.Q(sender=request.user) | models.Q(group__members=request.user))
+            .values('receiver', 'group')
+            .annotate(last_message_id=Max('id'))
+        )
+        messages = Message.objects.filter(id__in=[item['last_message_id'] for item in last_messages])
+        serializer = MessageSerializer(messages, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated])
+    def chat_history(self, request, pk=None):
+        """Retourne l'historique des messages entre deux utilisateurs ou pour un groupe spécifique."""
+        try:
+            group = Group.objects.get(pk=pk)
+            messages = Message.objects.filter(group=group).order_by('timestamp')
+        except Group.DoesNotExist:
+            try:
+                receiver = User.objects.get(pk=pk)
+                messages = Message.objects.filter(
+                    models.Q(sender=request.user, receiver=receiver) |
+                    models.Q(sender=receiver, receiver=request.user)
+                ).order_by('timestamp')
+            except User.DoesNotExist:
+                return Response({"detail": "Aucun utilisateur ou groupe correspondant trouvé."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = MessageSerializer(messages, many=True)
+        return Response(serializer.data)
+
+
 
