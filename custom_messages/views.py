@@ -106,5 +106,15 @@ class MessageViewSet(viewsets.ModelViewSet):
         serializer = MessageSerializer(messages, many=True)
         return Response(serializer.data)
 
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+    def send_message(self, request):
+        """Envoie un message à un utilisateur ou un groupe."""
+        serializer = MessageSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(sender=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
