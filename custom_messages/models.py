@@ -24,3 +24,5 @@ class Message(models.Model):
         if self.group:
             return f'Message in {self.group.name} from {self.sender} at {self.timestamp}'
         return f'Message from {self.sender} to {self.receiver} at {self.timestamp}'
+
+
