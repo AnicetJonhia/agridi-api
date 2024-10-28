@@ -109,11 +109,44 @@ class MessageViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
     def send_message(self, request):
         """Envoie un message à un utilisateur ou un groupe."""
+        # Le serializer reçoit les données directement
         serializer = MessageSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(sender=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        if serializer.is_valid(raise_exception=True):
+            # Récupérer le receiver et le group à partir de request.data
+            receiver_id = request.data.get('receiver', None)
+            group_id = request.data.get('group', None)
+
+            # Vérifiez si l'un des deux est présent
+            if receiver_id is None and group_id is None:
+                return Response({"detail": "Vous devez spécifier soit un destinataire (receiver), soit un groupe."},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            # Initialiser les variables pour sauvegarde
+            receiver = None
+            group = None
+
+            # Récupérer le receiver s'il est spécifié
+            if receiver_id is not None:
+                try:
+                    receiver = User.objects.get(pk=receiver_id)
+                except User.DoesNotExist:
+                    return Response({"detail": "Destinataire non trouvé."}, status=status.HTTP_404_NOT_FOUND)
+
+            # Récupérer le groupe s'il est spécifié
+            if group_id is not None:
+                try:
+                    group = Group.objects.get(pk=group_id)
+                except Group.DoesNotExist:
+                    return Response({"detail": "Groupe non trouvé."}, status=status.HTTP_404_NOT_FOUND)
+
+            # Sauvegarder le message
+            message = serializer.save(sender=request.user, receiver=receiver, group=group)
+            return Response(MessageSerializer(message).data, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
 
