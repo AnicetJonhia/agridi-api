@@ -9,5 +9,6 @@ router.register(r'', MessageViewSet)
 urlpatterns = [
     path('', include(router.urls)),
     path('<int:pk>/chat_history/', MessageViewSet.as_view({'get': 'chat_history'}), name='message-chat-history'),
+    path('send_message/', MessageViewSet.as_view({'post': 'send_message'}), name='message-send'),
     path('groups/<int:pk>/leave/', GroupViewSet.as_view({'post': 'leave'}), name='group-leave'),
 ]

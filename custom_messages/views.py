@@ -3,7 +3,7 @@ from django.db import models
 
 from core.permissions import IsMessageOwner, IsGroupOwnerOrMember
 
-from django.db.models import Max
+from django.db.models import Max, Q
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from .models import Message, Group
 from .serializers import MessageSerializer, GroupSerializer
 from users.models import User
+
 
 class GroupViewSet(viewsets.ModelViewSet):
     queryset = Group.objects.all()
@@ -74,17 +75,45 @@ class MessageViewSet(viewsets.ModelViewSet):
             models.Q(group__members=self.request.user)
         )
 
+
+
+
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], name='Conversations')
     def conversations(self, request):
         """Retourne la liste des dernières conversations avec le dernier message de chaque utilisateur ou groupe."""
+
+        # Filtrer les messages où l'utilisateur est soit l'expéditeur, soit le destinataire, soit membre d'un groupe
         last_messages = (
             Message.objects
-            .filter(models.Q(receiver=request.user) | models.Q(sender=request.user) | models.Q(group__members=request.user))
-            .values('receiver', 'group')
+            .filter(
+                Q(receiver=request.user) |
+                Q(sender=request.user) |
+                Q(group__members=request.user)
+            )
             .annotate(last_message_id=Max('id'))
         )
-        messages = Message.objects.filter(id__in=[item['last_message_id'] for item in last_messages])
-        serializer = MessageSerializer(messages, many=True)
+
+        # Créer un dictionnaire pour stocker le dernier message pour chaque conversation
+        unique_conversations = {}
+
+        for message in last_messages:
+            # Créer une clé unique pour chaque conversation
+            if message.group:
+                key = f"group_{message.group.id}"
+            else:
+                # On s'assure que l'ordre des acteurs ne compte pas
+                participants = sorted([message.sender.id, message.receiver.id])
+                key = f"user_{participants[0]}_{participants[1]}"
+
+            # Ajouter ou remplacer le message dans le dictionnaire si c'est le dernier
+            if key not in unique_conversations or unique_conversations[key].id < message.id:
+                unique_conversations[key] = message
+
+        # Récupérer les messages uniques
+        unique_messages = unique_conversations.values()
+
+        # Sérialiser les messages
+        serializer = MessageSerializer(unique_messages, many=True)
         return Response(serializer.data)
 
     @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated])
