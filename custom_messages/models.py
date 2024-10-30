@@ -14,7 +14,7 @@ class Group(models.Model):
 
 class Message(models.Model):
     content = models.TextField()
-    file = models.FileField(upload_to='messages/files/', blank=True, null=True)
+    file = models.FileField(upload_to='custom_messages/files/', blank=True, null=True)
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
     receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages', blank=True, null=True)
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='group_messages', blank=True, null=True)

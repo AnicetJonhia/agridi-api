@@ -40,3 +40,9 @@ class MessageSerializer(serializers.ModelSerializer):
         model = Message
         fields = '__all__'
         read_only_fields = ['sender', 'timestamp']
+
+    def get_file(self, obj):
+
+            if obj.file:
+                return f"{self.context['request'].build_absolute_uri(obj.file.url)}"
+            return None

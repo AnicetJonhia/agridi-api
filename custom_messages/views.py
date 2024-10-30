@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from .models import Message, Group
 from .serializers import MessageSerializer, GroupSerializer
 from users.models import User
-
+from rest_framework.parsers import MultiPartParser
 
 class GroupViewSet(viewsets.ModelViewSet):
     queryset = Group.objects.all()
@@ -135,11 +135,11 @@ class MessageViewSet(viewsets.ModelViewSet):
         serializer = MessageSerializer(messages, many=True, context={'request': request})
         return Response(serializer.data)
 
-    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], parser_classes=[MultiPartParser])
     def send_message(self, request):
         """Envoie un message à un utilisateur ou un groupe."""
         # Le serializer reçoit les données directement
-        serializer = MessageSerializer(data=request.data)
+        serializer = MessageSerializer(data=request.data, context={'request': request})
 
         if serializer.is_valid(raise_exception=True):
             # Récupérer le receiver et le group à partir de request.data
