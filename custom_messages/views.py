@@ -29,7 +29,7 @@ class GroupViewSet(viewsets.ModelViewSet):
 
         elif request.user in group.members.all():
 
-            serializer = self.get_serializer(group, data=request.data, partial=True)
+            serializer = self.get_serializer(group, data=request.data, partial=True, context={'request': request})
             if serializer.is_valid(raise_exception=True):
                 allowed_fields = ['name', 'photo']
                 if any(field not in allowed_fields for field in serializer.validated_data.keys()):
@@ -113,7 +113,7 @@ class MessageViewSet(viewsets.ModelViewSet):
         unique_messages = unique_conversations.values()
 
         # Sérialiser les messages
-        serializer = MessageSerializer(unique_messages, many=True)
+        serializer = MessageSerializer(unique_messages, many=True, context={'request': request})
         return Response(serializer.data)
 
     @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated])
@@ -132,7 +132,7 @@ class MessageViewSet(viewsets.ModelViewSet):
             except User.DoesNotExist:
                 return Response({"detail": "Aucun utilisateur ou groupe correspondant trouvé."}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = MessageSerializer(messages, many=True)
+        serializer = MessageSerializer(messages, many=True, context={'request': request})
         return Response(serializer.data)
 
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])

@@ -7,7 +7,13 @@ class UserSerializerForMessage(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email']
+        fields = ['id', 'username', 'email','profile_picture']
+
+    def get_profile_picture(self, obj):
+
+        if obj.profile_picture:
+            return f"{self.context['request'].build_absolute_uri(obj.profile_picture.url)}"
+        return None
 
 
 
@@ -18,6 +24,12 @@ class GroupSerializer(serializers.ModelSerializer):
         model = Group
         fields = '__all__'
         read_only_fields = ['owner']
+
+    def get_photo(self, obj):
+
+        if obj.photo:
+            return f"{self.context['request'].build_absolute_uri(obj.photo.url)}"
+        return None
 
 class MessageSerializer(serializers.ModelSerializer):
     group = GroupSerializer(read_only=True)
