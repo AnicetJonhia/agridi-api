@@ -97,6 +97,7 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = ProfileSerializer(request.user, context={'request': request})
         return Response(serializer.data)
 
+
     @action(detail=False, methods=['patch'], url_path='profile/edit', permission_classes=[IsAuthenticated], parser_classes=[MultiPartParser])
     def perform_update(self, request):
 
@@ -112,6 +113,12 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['get'], url_path='all', permission_classes=[IsAuthenticated])
+    def get_all_users(self, request):
+        users = User.objects.all()
+        serializer = ProfileSerializer(users, many=True, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class PasswordResetRequestView(generics.GenericAPIView):
     serializer_class = PasswordResetRequestSerializer
