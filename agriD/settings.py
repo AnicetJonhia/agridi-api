@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 import os
 import environ
-import fakeredis
+
 
 env = environ.Env()
 environ.Env.read_env()
@@ -59,8 +59,6 @@ INSTALLED_APPS = [
     'news',
     'notices',
     'payments',
-
-
 
 ]
 
@@ -173,7 +171,7 @@ REST_FRAMEWORK = {
 
 AUTH_USER_MODEL = 'users.User'
 
-# CORS_ALLOW_ALL_ORIGINS = True
+
 
 
 
@@ -221,5 +219,8 @@ else:
 
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5174",
+    "http://localhost:5173",
 ]
+
+
+CORS_ALLOW_ALL_ORIGINS = True

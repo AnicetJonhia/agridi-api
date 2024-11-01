@@ -18,7 +18,7 @@ from .serializers import PasswordResetRequestSerializer, PasswordResetConfirmSer
 from django.contrib.auth import get_user_model
 from rest_framework.parsers import MultiPartParser
 
-User = get_user_model()
+from .models import User
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -119,6 +119,15 @@ class UserViewSet(viewsets.ModelViewSet):
         users = User.objects.all()
         serializer = ProfileSerializer(users, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'], url_path='profile', permission_classes=[IsAuthenticated])
+    def get_user(self, request, pk=None):
+        try:
+            user = User.objects.get(pk=pk)
+            serializer = ProfileSerializer(user, context={'request': request})
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
 
 class PasswordResetRequestView(generics.GenericAPIView):
     serializer_class = PasswordResetRequestSerializer
