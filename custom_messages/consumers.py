@@ -16,7 +16,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
     async def disconnect(self, close_code):
-        # Quitter le groupe de chat
+
         await self.channel_layer.group_discard(
             self.group_name,
             self.channel_name
@@ -27,7 +27,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         message = data['message']
         sender_id = data['sender_id']
 
-        # Enregistrer le message dans la base de données
         group = await Group.objects.get(id=self.group_id)
         msg = Message.objects.create(content=message, sender_id=sender_id, group=group)
 

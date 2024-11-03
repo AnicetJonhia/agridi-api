@@ -1,9 +1,11 @@
 
 
 from django.db import models
-from users.models import User
-from products.models import Product
 
+from products.models import Product
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 class Order(models.Model):
     ORDER_STATUS_CHOICES = [

@@ -15,10 +15,11 @@ from django.utils.http import urlsafe_base64_encode
 from django.urls import reverse
 from django.conf import settings
 from .serializers import PasswordResetRequestSerializer, PasswordResetConfirmSerializer
-from django.contrib.auth import get_user_model
-from rest_framework.parsers import MultiPartParser
 
-from .models import User
+from rest_framework.parsers import MultiPartParser
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()

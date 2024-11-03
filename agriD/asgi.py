@@ -4,6 +4,8 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
 from custom_messages.routing import websocket_urlpatterns
 
+
+
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'agriD.settings')
 
 application = ProtocolTypeRouter({
