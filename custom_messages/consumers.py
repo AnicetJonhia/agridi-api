@@ -3,12 +3,14 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+        print("Attempting to connect...")
         self.group_name = self.scope['url_route']['kwargs']['group_name']
         await self.channel_layer.group_add(
             self.group_name,
             self.channel_name
         )
         await self.accept()
+        print("Connection accepted.")
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(
