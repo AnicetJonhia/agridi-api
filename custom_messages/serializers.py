@@ -1,7 +1,7 @@
 
 from rest_framework import serializers
 
-from .models import Message, Group
+from .models import Message, Group, File
 
 from django.contrib.auth import get_user_model
 
@@ -35,18 +35,18 @@ class GroupSerializer(serializers.ModelSerializer):
             return f"{self.context['request'].build_absolute_uri(obj.photo.url)}"
         return None
 
+class FileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = File
+        fields = ['id', 'file', 'uploaded_at']
+
 class MessageSerializer(serializers.ModelSerializer):
     group = GroupSerializer(read_only=True)
     receiver = UserSerializerForMessage(read_only=True)
     sender = UserSerializerForMessage(read_only=True)
+    files = FileSerializer(many=True, read_only=True)
 
     class Meta:
         model = Message
         fields = '__all__'
         read_only_fields = ['sender', 'timestamp']
-
-    def get_file(self, obj):
-
-            if obj.file:
-                return f"{self.context['request'].build_absolute_uri(obj.file.url)}"
-            return None

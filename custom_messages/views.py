@@ -1,21 +1,17 @@
 from django.db import models
-
-
 from core.permissions import IsMessageOwner, IsGroupOwnerOrMember
-
 from django.db.models import Max, Q
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from .models import Message, Group
-from .serializers import MessageSerializer, GroupSerializer
+from .models import Message, Group, File
+from .serializers import MessageSerializer, GroupSerializer, FileSerializer
 from users.models import User
 from rest_framework.parsers import MultiPartParser
 import logging
 
 logger = logging.getLogger(__name__)
-
 
 class GroupViewSet(viewsets.ModelViewSet):
     queryset = Group.objects.all()
@@ -32,7 +28,6 @@ class GroupViewSet(viewsets.ModelViewSet):
             return super().update(request, *args, **kwargs)
 
         elif request.user in group.members.all():
-
             serializer = self.get_serializer(group, data=request.data, partial=True, context={'request': request})
             if serializer.is_valid(raise_exception=True):
                 allowed_fields = ['name', 'photo']
@@ -52,14 +47,11 @@ class GroupViewSet(viewsets.ModelViewSet):
         except Group.DoesNotExist:
             return Response({"detail": "Groupe non trouvé."}, status=status.HTTP_404_NOT_FOUND)
 
-
         if request.user in group.members.all():
             group.members.remove(request.user)
             return Response({"detail": "Vous avez quitté le groupe."}, status=status.HTTP_200_OK)
         else:
             return Response({"detail": "Vous n'êtes pas membre de ce groupe."}, status=status.HTTP_400_BAD_REQUEST)
-
-
 
 class MessageViewSet(viewsets.ModelViewSet):
     queryset = Message.objects.all()
@@ -79,14 +71,9 @@ class MessageViewSet(viewsets.ModelViewSet):
             models.Q(group__members=self.request.user)
         )
 
-
-
-
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], name='Conversations')
     def conversations(self, request):
         """Retourne la liste des dernières conversations avec le dernier message de chaque utilisateur ou groupe."""
-
-        # Filtrer les messages où l'utilisateur est soit l'expéditeur, soit le destinataire, soit membre d'un groupe
         last_messages = (
             Message.objects
             .filter(
@@ -97,26 +84,18 @@ class MessageViewSet(viewsets.ModelViewSet):
             .annotate(last_message_id=Max('id'))
         )
 
-        # Créer un dictionnaire pour stocker le dernier message pour chaque conversation
         unique_conversations = {}
-
         for message in last_messages:
-            # Créer une clé unique pour chaque conversation
             if message.group:
                 key = f"group_{message.group.id}"
             else:
-                # On s'assure que l'ordre des acteurs ne compte pas
                 participants = sorted([message.sender.id, message.receiver.id])
                 key = f"user_{participants[0]}_{participants[1]}"
 
-            # Ajouter ou remplacer le message dans le dictionnaire si c'est le dernier
             if key not in unique_conversations or unique_conversations[key].id < message.id:
                 unique_conversations[key] = message
 
-        # Récupérer les messages uniques
         unique_messages = unique_conversations.values()
-
-        # Sérialiser les messages
         serializer = MessageSerializer(unique_messages, many=True, context={'request': request})
         return Response(serializer.data)
 
@@ -154,49 +133,35 @@ class MessageViewSet(viewsets.ModelViewSet):
             return Response({"detail": "Type invalide. Utilisez 'user' ou 'group'."},
                             status=status.HTTP_400_BAD_REQUEST)
 
-
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], parser_classes=[MultiPartParser])
     def send_message(self, request):
         """Envoie un message à un utilisateur ou un groupe."""
-        # Le serializer reçoit les données directement
         serializer = MessageSerializer(data=request.data, context={'request': request})
 
         if serializer.is_valid(raise_exception=True):
-            # Récupérer le receiver et le group à partir de request.data
             receiver_id = request.data.get('receiver', None)
             group_id = request.data.get('group', None)
 
-            # Vérifiez si l'un des deux est présent
             if receiver_id is None and group_id is None:
                 return Response({"detail": "Vous devez spécifier soit un destinataire (receiver), soit un groupe."},
                                 status=status.HTTP_400_BAD_REQUEST)
 
-            # Initialiser les variables pour sauvegarde
             receiver = None
             group = None
 
-            # Récupérer le receiver s'il est spécifié
             if receiver_id is not None:
                 try:
                     receiver = User.objects.get(pk=receiver_id)
                 except User.DoesNotExist:
                     return Response({"detail": "Destinataire non trouvé."}, status=status.HTTP_404_NOT_FOUND)
 
-            # Récupérer le groupe s'il est spécifié
             if group_id is not None:
                 try:
                     group = Group.objects.get(pk=group_id)
                 except Group.DoesNotExist:
                     return Response({"detail": "Groupe non trouvé."}, status=status.HTTP_404_NOT_FOUND)
 
-            # Sauvegarder le message
             message = serializer.save(sender=request.user, receiver=receiver, group=group)
             return Response(MessageSerializer(message).data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-
-
-
-
