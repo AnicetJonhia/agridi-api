@@ -133,6 +133,8 @@ class MessageViewSet(viewsets.ModelViewSet):
             return Response({"detail": "Type invalide. Utilisez 'user' ou 'group'."},
                             status=status.HTTP_400_BAD_REQUEST)
 
+
+
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], parser_classes=[MultiPartParser])
     def send_message(self, request):
         """Envoie un message à un utilisateur ou un groupe."""
@@ -162,6 +164,13 @@ class MessageViewSet(viewsets.ModelViewSet):
                     return Response({"detail": "Groupe non trouvé."}, status=status.HTTP_404_NOT_FOUND)
 
             message = serializer.save(sender=request.user, receiver=receiver, group=group)
-            return Response(MessageSerializer(message).data, status=status.HTTP_201_CREATED)
+
+            # Handle file uploads
+            files = request.FILES.getlist('files')
+            for file in files:
+                file_instance = File.objects.create(file=file)
+                message.files.add(file_instance)
+
+            return Response(MessageSerializer(message, context={'request': request}).data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
