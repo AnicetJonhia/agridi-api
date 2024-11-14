@@ -69,7 +69,7 @@ class MessageViewSet(viewsets.ModelViewSet):
         return Message.objects.filter(
             models.Q(receiver=self.request.user) | models.Q(sender=self.request.user) |
             models.Q(group__members=self.request.user)
-        )
+        ).distinct()
 
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], name='Conversations')
     def conversations(self, request):
@@ -82,6 +82,7 @@ class MessageViewSet(viewsets.ModelViewSet):
                 Q(group__members=request.user)
             )
             .annotate(last_message_id=Max('id'))
+
         )
 
         unique_conversations = {}
