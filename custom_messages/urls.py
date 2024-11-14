@@ -10,5 +10,8 @@ urlpatterns = [
     path('', include(router.urls)),
     path('<str:type>/<int:pk>/chat_history/', MessageViewSet.as_view({'get': 'chat_history'}), name='message-chat-history'),
     path('send_message/', MessageViewSet.as_view({'post': 'send_message'}), name='message-send'),
+    path('<int:pk>/remove_file/<int:file_id>/', MessageViewSet.as_view({'delete': 'remove_file'}),
+         name='message-remove-file'),
+
     path('groups/<int:pk>/leave/', GroupViewSet.as_view({'post': 'leave'}), name='group-leave'),
 ]

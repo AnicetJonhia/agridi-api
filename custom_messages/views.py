@@ -175,3 +175,17 @@ class MessageViewSet(viewsets.ModelViewSet):
             return Response(MessageSerializer(message, context={'request': request}).data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['delete'], permission_classes=[IsAuthenticated])
+    def remove_file(self, request, pk=None, file_id=None):
+        """Remove a file from a message's files."""
+        try:
+            message = self.get_object()
+            file = message.files.get(pk=file_id)
+            message.files.remove(file)
+            file.delete()
+            return Response({"detail": "File removed successfully."}, status=status.HTTP_204_NO_CONTENT)
+        except Message.DoesNotExist:
+            return Response({"detail": "Message not found."}, status=status.HTTP_404_NOT_FOUND)
+        except File.DoesNotExist:
+            return Response({"detail": "File not found."}, status=status.HTTP_404_NOT_FOUND)
