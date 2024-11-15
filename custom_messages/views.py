@@ -25,7 +25,10 @@ class GroupViewSet(viewsets.ModelViewSet):
         return Group.objects.filter(members=user).distinct()
 
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+        group = serializer.save(owner=self.request.user)
+        members = self.request.data.getlist('members')
+        group.members.set(members)
+        group.save()
 
     def update(self, request, *args, **kwargs):
         group = self.get_object()
