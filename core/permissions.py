@@ -53,7 +53,7 @@ class IsMessageOwner(BasePermission):
 class IsGroupOwnerOrMember(BasePermission):
     def has_object_permission(self, request, view, obj):
 
-        if request.method in ['PUT', 'PATCH']:
+        if request.method in ['PUT', 'PATCH', 'GET']:   
             return request.user in obj.members.all() or obj.owner == request.user
 
 

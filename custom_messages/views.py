@@ -18,6 +18,11 @@ class GroupViewSet(viewsets.ModelViewSet):
     serializer_class = GroupSerializer
     permission_classes = [IsAuthenticated, IsGroupOwnerOrMember]
 
+    def get_queryset(self):
+       
+        user = self.request.user
+        return Group.objects.filter(members=user).distinct()
+
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
 
@@ -52,6 +57,7 @@ class GroupViewSet(viewsets.ModelViewSet):
             return Response({"detail": "Vous avez quitté le groupe."}, status=status.HTTP_200_OK)
         else:
             return Response({"detail": "Vous n'êtes pas membre de ce groupe."}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class MessageViewSet(viewsets.ModelViewSet):
     queryset = Message.objects.all()
