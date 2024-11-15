@@ -17,6 +17,7 @@ class GroupViewSet(viewsets.ModelViewSet):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
     permission_classes = [IsAuthenticated, IsGroupOwnerOrMember]
+    parser_classes = [MultiPartParser]
 
     def get_queryset(self):
        
