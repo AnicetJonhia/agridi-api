@@ -30,6 +30,12 @@ class GroupViewSet(viewsets.ModelViewSet):
         group.members.set(members)
         group.save()
 
+        initial_message_content = f"Group '{group.name}' created"
+        Message.objects.create(
+            content=initial_message_content,
+            sender=self.request.user,
+            group=group
+        )
 
     def update(self, request, *args, **kwargs):
         group = self.get_object()
