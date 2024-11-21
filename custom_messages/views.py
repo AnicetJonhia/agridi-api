@@ -30,6 +30,7 @@ class GroupViewSet(viewsets.ModelViewSet):
         group.members.set(members)
         group.save()
 
+
     def update(self, request, *args, **kwargs):
         group = self.get_object()
 
