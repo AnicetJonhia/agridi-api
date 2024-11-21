@@ -186,6 +186,8 @@ class MessageViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+
     @action(detail=True, methods=['delete'], permission_classes=[IsAuthenticated])
     def remove_file(self, request, pk=None, file_id=None):
         """Remove a file from a message's files."""
