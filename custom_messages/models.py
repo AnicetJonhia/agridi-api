@@ -14,8 +14,8 @@ class Group(models.Model):
         return self.name
 
     def clean(self):
-        if not self.members.exists():
-            raise ValidationError('A group must have at least one member.')
+        if self.members.count() < 2:
+            raise ValidationError('A group must have at least two members apart from the owner.')
 
     def save(self, *args, **kwargs):
         self.full_clean()
