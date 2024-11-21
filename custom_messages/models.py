@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth import get_user_model
 User = get_user_model()
@@ -11,6 +12,14 @@ class Group(models.Model):
 
     def __str__(self):
         return self.name
+
+    def clean(self):
+        if not self.members.exists():
+            raise ValidationError('A group must have at least one member.')
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
 
 class File(models.Model):
