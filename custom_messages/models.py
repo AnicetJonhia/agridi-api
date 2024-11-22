@@ -28,6 +28,7 @@ class Message(models.Model):
     receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages', blank=True, null=True)
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='group_messages', blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
+    deleted_by = models.ManyToManyField(User, related_name='deleted_messages', blank=True)
 
     def __str__(self):
         if self.group:

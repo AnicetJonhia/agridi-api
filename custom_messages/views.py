@@ -117,6 +117,38 @@ class MessageViewSet(viewsets.ModelViewSet):
         serializer = MessageSerializer(unique_messages, many=True, context={'request': request})
         return Response(serializer.data)
 
+    @action(detail=True, methods=['delete'], permission_classes=[IsAuthenticated])
+    def delete_conversation(self, request, pk=None, type=None):
+        """Supprime une conversation entre deux utilisateurs ou pour un groupe spécifique."""
+        if type == 'private':
+            try:
+                receiver = User.objects.get(pk=pk)
+                messages = Message.objects.filter(
+                    models.Q(sender=request.user, receiver=receiver) |
+                    models.Q(sender=receiver, receiver=request.user)
+                )
+                for message in messages:
+                    message.deleted_by.add(request.user)
+                return Response({"detail": "Conversation supprimée avec succès."}, status=status.HTTP_204_NO_CONTENT)
+            except User.DoesNotExist:
+                return Response({"detail": "Aucun utilisateur correspondant trouvé."},
+                                status=status.HTTP_404_NOT_FOUND)
+        elif type == 'group':
+            try:
+                group = Group.objects.get(pk=pk)
+                messages = Message.objects.filter(group=group)
+                for message in messages:
+                    message.deleted_by.add(request.user)
+                return Response({"detail": "Conversation de groupe supprimée avec succès."},
+                                status=status.HTTP_204_NO_CONTENT)
+            except Group.DoesNotExist:
+                return Response({"detail": "Aucun groupe correspondant trouvé."},
+                                status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({"detail": "Type invalide. Utilisez 'user' ou 'group'."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+
     @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated])
     def chat_history(self, request, pk=None, type=None):
         """Retourne l'historique des messages entre deux utilisateurs ou pour un groupe spécifique."""
