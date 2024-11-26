@@ -88,18 +88,19 @@ class MessageViewSet(viewsets.ModelViewSet):
             models.Q(group__members=self.request.user)
         ).distinct()
 
+
+
+
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], name='Conversations')
     def conversations(self, request):
         """Retourne la liste des dernières conversations avec le dernier message de chaque utilisateur ou groupe."""
         last_messages = (
             Message.objects
             .filter(
-                Q(receiver=request.user) |
-                Q(sender=request.user) |
-                Q(group__members=request.user)
+                (Q(receiver=request.user) | Q(sender=request.user) | Q(group__members=request.user)) &
+                ~Q(deleted_by=request.user)
             )
             .annotate(last_message_id=Max('id'))
-
         )
 
         unique_conversations = {}
@@ -116,6 +117,7 @@ class MessageViewSet(viewsets.ModelViewSet):
         unique_messages = unique_conversations.values()
         serializer = MessageSerializer(unique_messages, many=True, context={'request': request})
         return Response(serializer.data)
+
 
     @action(detail=True, methods=['delete'], permission_classes=[IsAuthenticated])
     def delete_conversation(self, request, pk=None, type=None):
@@ -149,6 +151,8 @@ class MessageViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
 
 
+
+
     @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated])
     def chat_history(self, request, pk=None, type=None):
         """Retourne l'historique des messages entre deux utilisateurs ou pour un groupe spécifique."""
@@ -158,7 +162,7 @@ class MessageViewSet(viewsets.ModelViewSet):
                 messages = Message.objects.filter(
                     models.Q(sender=request.user, receiver=receiver) |
                     models.Q(sender=receiver, receiver=request.user)
-                ).order_by('timestamp')
+                ).exclude(deleted_by=request.user).order_by('timestamp')
                 if not messages.exists():
                     logger.debug(f"No messages found between users {request.user.id} and {receiver.id}")
                 serializer = MessageSerializer(messages, many=True, context={'request': request})
@@ -170,7 +174,7 @@ class MessageViewSet(viewsets.ModelViewSet):
         elif type == 'group':
             try:
                 group = Group.objects.get(pk=pk)
-                messages = Message.objects.filter(group=group).order_by('timestamp')
+                messages = Message.objects.filter(group=group).exclude(deleted_by=request.user).order_by('timestamp')
                 if not messages.exists():
                     logger.debug(f"No messages found for group {group.id}")
                 serializer = MessageSerializer(messages, many=True, context={'request': request})
@@ -182,7 +186,6 @@ class MessageViewSet(viewsets.ModelViewSet):
         else:
             return Response({"detail": "Type invalide. Utilisez 'user' ou 'group'."},
                             status=status.HTTP_400_BAD_REQUEST)
-
 
 
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], parser_classes=[MultiPartParser])
