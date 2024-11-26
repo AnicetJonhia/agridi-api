@@ -147,7 +147,7 @@ class MessageViewSet(viewsets.ModelViewSet):
                 return Response({"detail": "Aucun groupe correspondant trouvé."},
                                 status=status.HTTP_404_NOT_FOUND)
         else:
-            return Response({"detail": "Type invalide. Utilisez 'user' ou 'group'."},
+            return Response({"detail": "Type invalide. Utilisez 'private' ou 'group'."},
                             status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -184,7 +184,7 @@ class MessageViewSet(viewsets.ModelViewSet):
                 return Response({"detail": "Aucun groupe correspondant trouvé."},
                                 status=status.HTTP_404_NOT_FOUND)
         else:
-            return Response({"detail": "Type invalide. Utilisez 'user' ou 'group'."},
+            return Response({"detail": "Type invalide. Utilisez 'private' ou 'group'."},
                             status=status.HTTP_400_BAD_REQUEST)
 
 
