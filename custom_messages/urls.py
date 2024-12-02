@@ -14,5 +14,8 @@ urlpatterns = [
          name='message-remove-file'),
     path('<str:type>/<int:pk>/delete_conversation/', MessageViewSet.as_view({'delete': 'delete_conversation'}),
          name='delete_conversation'),
+    path('groups/<int:pk>/add_member/', GroupViewSet.as_view({'post': 'add_member'}), name='group-add-member'),
+    path('groups/<int:pk>/remove_member/', GroupViewSet.as_view({'post': 'remove_member'}), name='group-remove-member'),
+
     path('groups/<int:pk>/leave/', GroupViewSet.as_view({'post': 'leave'}), name='group-leave'),
 ]

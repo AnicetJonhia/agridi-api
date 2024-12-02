@@ -55,6 +55,35 @@ class GroupViewSet(viewsets.ModelViewSet):
         return Response({"detail": "Vous n'avez pas la permission de modifier ce groupe."},
                         status=status.HTTP_403_FORBIDDEN)
 
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    def add_member(self, request, pk=None):
+        group = self.get_object()
+        if request.user == group.owner:
+            member_id = request.data.get('member_id')
+            try:
+                member = User.objects.get(pk=member_id)
+                group.members.add(member)
+                return Response({"detail": "Member added successfully."}, status=status.HTTP_200_OK)
+            except User.DoesNotExist:
+                return Response({"detail": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"detail": "You do not have permission to modify this group."}, status=status.HTTP_403_FORBIDDEN)
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    def remove_member(self, request, pk=None):
+        group = self.get_object()
+        if request.user == group.owner:
+            member_id = request.data.get('member_id')
+            try:
+                member = User.objects.get(pk=member_id)
+                group.members.remove(member)
+                return Response({"detail": "Member removed successfully."}, status=status.HTTP_200_OK)
+            except User.DoesNotExist:
+                return Response({"detail": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"detail": "You do not have permission to modify this group."}, status=status.HTTP_403_FORBIDDEN)
+
+
+
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def leave(self, request, pk=None):
         """Permet à l'utilisateur de quitter le groupe"""
@@ -68,6 +97,8 @@ class GroupViewSet(viewsets.ModelViewSet):
             return Response({"detail": "Vous avez quitté le groupe."}, status=status.HTTP_200_OK)
         else:
             return Response({"detail": "Vous n'êtes pas membre de ce groupe."}, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
 class MessageViewSet(viewsets.ModelViewSet):
