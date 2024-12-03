@@ -56,18 +56,29 @@ class GroupViewSet(viewsets.ModelViewSet):
                         status=status.HTTP_403_FORBIDDEN)
 
 
-    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated], parser_classes=[MultiPartParser])
     def add_member(self, request, pk=None):
         group = self.get_object()
         if request.user == group.owner:
-            member_id = request.data.get('member_id')
-            try:
-                member = User.objects.get(pk=member_id)
-                group.members.add(member)
-                return Response({"detail": "Member added successfully."}, status=status.HTTP_200_OK)
-            except User.DoesNotExist:
-                return Response({"detail": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+            member_ids = request.data.getlist('member_id')
+            if not member_ids:
+                return Response({"detail": "member_ids should be provided."}, status=status.HTTP_400_BAD_REQUEST)
+
+            added_members = []
+            for member_id in member_ids:
+                try:
+                    member = User.objects.get(pk=member_id)
+                    group.members.add(member)
+                    added_members.append(member.username)
+                except User.DoesNotExist:
+                    return Response({"detail": f"User with id {member_id} not found."}, status=status.HTTP_404_NOT_FOUND)
+
+            return Response({"detail": f"Members {', '.join(added_members)} added successfully."}, status=status.HTTP_200_OK)
         return Response({"detail": "You do not have permission to modify this group."}, status=status.HTTP_403_FORBIDDEN)
+
+
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def remove_member(self, request, pk=None):
