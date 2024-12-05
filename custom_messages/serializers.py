@@ -22,6 +22,7 @@ class UserSerializerForMessage(serializers.ModelSerializer):
 
 class GroupSerializer(serializers.ModelSerializer):
     members = UserSerializerForMessage(many=True, read_only=True)
+    owner = UserSerializerForMessage(read_only=True)
 
     class Meta:
         model = Group
